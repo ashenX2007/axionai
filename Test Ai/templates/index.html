@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AXION AI</title>
+    <style>
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; min-height: 100%; }
+        body { font-family: Inter, system-ui, sans-serif; background: #03050a; color: #f8fafc; }
+        .app-shell { display: grid; grid-template-columns: 72px 1fr; min-height: 100vh; }
+        .sidebar { background: rgba(11, 16, 33, 0.88); border-right: 1px solid rgba(148, 163, 184, 0.12); padding: 24px 12px; display: flex; flex-direction: column; align-items: center; gap: 28px; }
+        .sidebar .brand { width: 48px; height: 48px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, #2563eb, #7c3aed); box-shadow: 0 20px 60px rgba(59, 130, 246, 0.25); }
+        .sidebar .brand span { color: white; font-weight: 900; font-size: 1.2rem; }
+        .sidebar .nav { display: grid; gap: 16px; }
+        .nav-dot { width: 14px; height: 14px; border-radius: 999px; background: rgba(148, 163, 184, 0.3); transition: transform 0.2s ease, background 0.2s ease; }
+        .nav-dot.active { background: linear-gradient(180deg, #60a5fa, #a78bfa); transform: scale(1.15); box-shadow: 0 0 14px rgba(96, 165, 250, 0.33); }
+        .main { padding: 32px 32px 40px; display: flex; align-items: center; justify-content: center; }
+        .glass-card { width: min(1120px, 100%); border-radius: 32px; background: rgba(7, 12, 24, 0.8); border: 1px solid rgba(148, 163, 184, 0.08); backdrop-filter: blur(18px); box-shadow: 0 40px 140px rgba(8, 16, 36, 0.55); overflow: hidden; position: relative; }
+        .glass-card::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(96, 165, 250, 0.16), transparent 30%), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.12), transparent 26%); pointer-events: none; }
+        .content { display: grid; grid-template-columns: 1fr 1fr; min-height: 700px; }
+        .hero { padding: 56px 56px 52px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+        .company-logo { width: min(100%, 350px); height: auto; border-radius: 22px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35); }
+        .hero-tag { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 999px; background: rgba(96, 165, 250, 0.14); color: #bfdbfe; font-size: 0.82rem; letter-spacing: 0.16em; text-transform: uppercase; }
+        .hero-title { font-size: clamp(3rem, 5vw, 5rem); line-height: 0.95; margin: 0; letter-spacing: -0.08em; max-width: 520px; }
+        .hero-desc { max-width: 520px; font-size: 1rem; line-height: 1.8; color: #cbd5e1; }
+        .hero-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 32px; }
+        .hero-action { background: rgba(255,255,255,0.04); border: 1px solid rgba(148,163,184,0.12); border-radius: 22px; padding: 18px 20px; color: white; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease; text-align: left; }
+        .hero-action:hover { transform: translateY(-2px); background: rgba(96, 165, 250, 0.14); }
+        .hero-action span { display: block; color: #93c5fd; font-size: 0.82rem; margin-bottom: 8px; }
+        .hero-action strong { font-size: 1rem; line-height: 1.3; }
+        .chat-panel { position: relative; padding: 48px 40px 32px; display: flex; flex-direction: column; gap: 24px; }
+        .chat-panel::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(96,165,250,0.08), transparent 45%); pointer-events: none; }
+        .chat-card { background: rgba(5, 10, 18, 0.92); border: 1px solid rgba(148, 163, 184, 0.1); border-radius: 28px; padding: 26px; display: flex; flex-direction: column; gap: 18px; min-height: 420px; overflow: hidden; animation: floatCard 10s ease-in-out infinite; transform-origin: center; }
+        .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .chat-title { font-size: 1.25rem; font-weight: 700; margin: 0; }
+        .chat-subtitle { color: #94a3b8; font-size: 0.95rem; }
+        .chat-messages { flex: 1; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-right: 4px; }
+        .message { max-width: 86%; padding: 16px 18px; border-radius: 20px; line-height: 1.6; word-break: break-word; }
+        .message.user { align-self: flex-end; background: rgba(255,255,255,0.06); color: #f8fafc; border: 1px solid rgba(255,255,255,0.08); }
+        .message.ai { align-self: flex-start; background: rgba(59, 130, 246, 0.14); color: #e2e8f0; border: 1px solid rgba(96, 165, 250, 0.12); }
+        .input-area { display: grid; grid-template-columns: 1fr auto; gap: 14px; }
+        .input-area input { width: 100%; min-height: 58px; border-radius: 18px; border: 1px solid rgba(148, 163, 184, 0.12); background: rgba(255,255,255,0.05); color: white; padding: 0 18px; font-size: 1rem; outline: none; }
+        .input-area input::placeholder { color: rgba(226, 232, 240, 0.55); }
+        .send-button { background: linear-gradient(90deg, #60a5fa, #8b5cf6); color: white; border: none; border-radius: 18px; padding: 0 24px; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .send-button:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(96, 165, 250, 0.35); }
+        .send-button:active { transform: scale(0.98); }
+        .pulse-dot { position: absolute; top: 32px; right: 32px; width: 18px; height: 18px; border-radius: 999px; background: #34d399; box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.5); animation: pulse 2.2s infinite; }
+        @keyframes floatCard { 0%, 100% { transform: translate3d(0, 0, 0); }
+                              20% { transform: translate3d(6px, -7px, 0) rotate(-0.15deg); }
+                              45% { transform: translate3d(-5px, 8px, 0) rotate(0.12deg); }
+                              70% { transform: translate3d(4px, -4px, 0) rotate(-0.08deg); }
+                              90% { transform: translate3d(-3px, 5px, 0) rotate(0.1deg); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); } 70% { box-shadow: 0 0 0 18px rgba(52,211,153,0); } 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0); } }
+        @media (max-width: 1040px) { .content { grid-template-columns: 1fr; } .hero { padding: 40px 30px 30px; } .chat-panel { padding: 32px 30px 28px; } }
+        @media (max-width: 780px) { .app-shell { grid-template-columns: 1fr; } .sidebar { flex-direction: row; justify-content: space-between; padding: 18px 20px; } .content { min-height: 0; } .hero { padding: 30px 20px 26px; } .chat-panel { padding: 28px 20px 24px; } .hero-buttons { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div class="sidebar">
+            <div class="brand"><span>A</span></div>
+            <div class="nav">
+                <div class="nav-dot active"></div>
+                <div class="nav-dot"></div>
+                <div class="nav-dot"></div>
+            </div>
+        </div>
+        <main class="main">
+            <section class="glass-card">
+                <div class="content">
+                    <div class="hero">
+                        <img class="company-logo" src="/static/logo.png" alt="Company logo" />
+                        <div class="hero-tag">AXION AI</div>
+                        <h1 class="hero-title">Hey! <br>What can I help with?</h1>
+                        <p class="hero-desc">A modern AI interface with focused quick actions, glowing glass styling, and chat-first experience.</p>
+                        <div class="hero-buttons">
+                            <button class="hero-action" onclick="quickAsk('Content Help')"><span>Content Help</span><strong>Get smart ideas</strong></button>
+                            <button class="hero-action" onclick="quickAsk('Suggestions')"><span>Suggestions</span><strong>Ask for suggestions</strong></button>
+                            <button class="hero-action" onclick="quickAsk('Job Application')"><span>Job Application</span><strong>Write a quick letter</strong></button>
+                        </div>
+                    </div>
+                    <div class="chat-panel">
+                        <div class="pulse-dot"></div>
+                        <div class="chat-card">
+                            <div class="chat-header">
+                                <div>
+                                    <p class="chat-title">AXION Chat</p>
+                                    <p class="chat-subtitle">Type your prompt below and get instant AI response.</p>
+                                </div>
+                            </div>
+                            <div class="chat-messages" id="chatWindow"></div>
+                            <div class="input-area">
+                                <input id="userInput" type="text" placeholder="Ask me anything..." autocomplete="off" onkeydown="handleKey(event)">
+                                <button class="send-button" onclick="sendMessage()">Send</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script>
+        function addMessage(text, role) {
+            const container = document.getElementById('chatWindow');
+            const bubble = document.createElement('div');
+            bubble.className = 'message ' + role;
+            bubble.textContent = text;
+            container.appendChild(bubble);
+            container.scrollTop = container.scrollHeight;
+        }
+        function quickAsk(label) {
+            const input = document.getElementById('userInput');
+            input.value = label;
+            sendMessage();
+        }
+        function handleKey(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text) return;
+            addMessage(text, 'user');
+            input.value = '';
+            const loading = document.createElement('div');
+            loading.className = 'message ai';
+            loading.textContent = 'Thinking...';
+            document.getElementById('chatWindow').appendChild(loading);
+            document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+                const data = await response.json();
+                loading.remove();
+                addMessage(data.reply, 'ai');
+            } catch (error) {
+                loading.remove();
+                addMessage('Unable to reach AXION AI. Please try again.', 'ai');
+            }
+        }
+    </script>
+</body>
+</html>

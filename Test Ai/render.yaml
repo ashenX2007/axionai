@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: axion-ai
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: AXION_API_KEY
+        value: AQ.Ab8RN6KkaeaXVcilHhHcifnMVRX2nUNdWGYoElKiDkUoJpuxWA
+      - key: PYTHONUNBUFFERED
+        value: '1'
